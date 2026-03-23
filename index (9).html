@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Art Lab — DAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Playfair+Display:ital,wght@0,900;1,900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#06101d;
+  --navy2:#0a1825;
+  --navy3:#0d2d4a;
+  --gold:#f5c400;
+  --sea:#4ac9e3;
+  --red:#e84c2b;
+  --white:#ffffff;
+  --dim:#8ab4c4;
+  --glow-gold:0 0 24px rgba(245,196,0,.45);
+  --glow-sea:0 0 24px rgba(74,201,227,.4);
+  --glow-red:0 0 24px rgba(232,76,43,.45);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+
+/* ── CANVAS ── */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ── DCU BAR ── */
+.dcu-bar{
+  position:relative;z-index:10;
+  background:rgba(6,16,29,.97);
+  border-bottom:1px solid rgba(245,196,0,.18);
+  padding:.5rem 3.5rem;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(12px);
+}
+.dcu-l{display:flex;align-items:center;gap:.9rem}
+.dcu-name{font-family:'DM Mono',monospace;font-size:.7rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.dcu-div{width:1px;height:.85rem;background:rgba(245,196,0,.2)}
+.dcu-sub{font-size:.67rem;color:var(--dim);letter-spacing:.04em}
+.dcu-a{font-family:'DM Mono',monospace;font-size:.67rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sea);transition:color .2s}
+.dcu-a:hover{color:var(--gold)}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 3.5rem;
+  background:rgba(6,16,29,.93);
+  border-bottom:1px solid rgba(74,201,227,.12);
+  backdrop-filter:blur(18px);
+}
+.nav-logo{display:flex;align-items:baseline;gap:.3rem}
+.nav-logo-tech{font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.1em;color:var(--gold);text-shadow:var(--glow-gold)}
+.nav-logo-art{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;font-style:italic;color:var(--sea);animation:seaGlow 3s ease-in-out infinite}
+@keyframes seaGlow{0%,100%{text-shadow:0 0 8px rgba(74,201,227,.4)}50%{text-shadow:0 0 18px rgba(74,201,227,.9),0 0 35px rgba(74,201,227,.4)}}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{font-family:'DM Mono',monospace;font-size:.7rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);transition:color .2s}
+.nav-links a:hover{color:var(--sea)}
+.nav-dot{display:flex;align-items:center;gap:.5rem;font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.08em;color:var(--dim)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--sea);box-shadow:var(--glow-sea);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── HERO ── */
+.hero{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:grid;grid-template-columns:1fr 1fr;
+  align-items:center;
+  padding:6rem 3.5rem 4rem;
+  gap:2rem;overflow:hidden;
+}
+/* Scanlines */
+.hero::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(74,201,227,.012) 3px,rgba(74,201,227,.012) 4px);
+  pointer-events:none;z-index:0;
+}
+.hero-text{position:relative;z-index:2}
+
+/* TAG */
+.hero-tag{
+  font-family:'DM Mono',monospace;font-size:.68rem;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--sea);margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:.7rem;
+}
+.hero-tag::before{content:'//';color:var(--gold);font-weight:700}
+
+/* BIG HYBRID TITLE — tech word + painterly word */
+.hero-h1{margin-bottom:1.8rem;line-height:.92}
+.h1-digital{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(2.2rem,4.5vw,4.5rem);
+  font-weight:900;letter-spacing:.04em;
+  color:var(--gold);
+  text-shadow:var(--glow-gold);
+  display:block;
+  animation:slideUp .8s ease forwards;
+}
+.h1-art{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(3rem,6vw,6.5rem);
+  font-weight:900;font-style:italic;
+  color:var(--white);
+  display:block;
+  line-height:.88;
+  animation:slideUp .8s .15s ease both;opacity:0;
+}
+.h1-lab{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(1.8rem,3.5vw,3.5rem);
+  font-weight:900;letter-spacing:.08em;
+  color:transparent;
+  -webkit-text-stroke:2px var(--red);
+  display:block;
+  animation:slideUp .8s .3s ease both, neonPulse 2.4s 1.1s ease-in-out infinite;
+  opacity:0;
+}
+@keyframes neonPulse{
+  0%,100%{
+    filter:drop-shadow(0 0 4px rgba(232,76,43,.6)) drop-shadow(0 0 12px rgba(232,76,43,.4)) drop-shadow(0 0 24px rgba(232,76,43,.2));
+    -webkit-text-stroke:2px #e84c2b;
+  }
+  45%{
+    filter:drop-shadow(0 0 8px rgba(232,76,43,1)) drop-shadow(0 0 22px rgba(232,76,43,.8)) drop-shadow(0 0 45px rgba(232,76,43,.5)) drop-shadow(0 0 70px rgba(232,76,43,.25));
+    -webkit-text-stroke:2px #ff7055;
+  }
+  50%{
+    filter:drop-shadow(0 0 2px rgba(232,76,43,.3)) drop-shadow(0 0 6px rgba(232,76,43,.2));
+    -webkit-text-stroke:2px #c03318;
+  }
+  55%{
+    filter:drop-shadow(0 0 8px rgba(232,76,43,1)) drop-shadow(0 0 22px rgba(232,76,43,.8)) drop-shadow(0 0 45px rgba(232,76,43,.5));
+    -webkit-text-stroke:2px #ff7055;
+  }
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+.hero-desc{
+  font-size:1rem;line-height:1.75;color:var(--dim);
+  max-width:480px;margin-bottom:2.5rem;
+  animation:slideUp .8s .45s ease both;opacity:0;
+}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;animation:slideUp .8s .6s ease both;opacity:0}
+
+/* BUTTONS */
+.btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.85rem 2rem;
+  font-family:'DM Mono',monospace;font-size:.75rem;
+  font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  border:1.5px solid transparent;cursor:pointer;transition:all .25s;
+}
+.btn-gold{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.btn-gold:hover{background:transparent;color:var(--gold);box-shadow:var(--glow-gold)}
+.btn-ghost{background:transparent;color:var(--sea);border-color:var(--sea)}
+.btn-ghost:hover{background:rgba(74,201,227,.1);box-shadow:var(--glow-sea)}
+.btn-red{background:var(--red);color:var(--white);border-color:var(--red)}
+.btn-red:hover{background:transparent;color:var(--red);box-shadow:var(--glow-red)}
+
+/* HERO VISUAL — orbital + paint splash hybrid */
+.hero-visual{position:relative;z-index:2;display:flex;justify-content:center;align-items:center;height:480px}
+.vis-wrap{position:relative;width:380px;height:380px}
+/* Paint splash SVG behind rings */
+.splash-svg{position:absolute;inset:-40px;z-index:0;opacity:.18}
+.splash-svg ellipse, .splash-svg circle, .splash-svg path{transform-box:fill-box;transform-origin:center}
+.sp1{animation:splashDrift1 8s ease-in-out infinite}
+.sp2{animation:splashDrift2 10s ease-in-out infinite}
+.sp3{animation:splashDrift3 7s ease-in-out infinite}
+.sp4{animation:splashDrift4 9s ease-in-out infinite}
+.sp5{animation:strokeMove 11s ease-in-out infinite}
+.sp6{animation:splashDrift3 6s ease-in-out infinite 1s}
+@keyframes splashDrift1{0%,100%{transform:translate(0,0) scale(1) rotate(-22deg)}33%{transform:translate(12px,-8px) scale(1.06) rotate(-18deg)}66%{transform:translate(-8px,10px) scale(.96) rotate(-26deg)}}
+@keyframes splashDrift2{0%,100%{transform:translate(0,0) scale(1) rotate(15deg)}40%{transform:translate(-10px,12px) scale(1.08) rotate(20deg)}75%{transform:translate(8px,-6px) scale(.94) rotate(10deg)}}
+@keyframes splashDrift3{0%,100%{transform:translate(0,0) scale(1) rotate(-8deg)}50%{transform:translate(10px,-10px) scale(1.1) rotate(-4deg)}}
+@keyframes splashDrift4{0%,100%{transform:translate(0,0) scale(1)}45%{transform:translate(-12px,8px) scale(1.12)}80%{transform:translate(6px,-4px) scale(.9)}}
+@keyframes strokeMove{0%,100%{stroke-dashoffset:0;opacity:.18}50%{stroke-dashoffset:40;opacity:.28}}
+/* Orbital rings */
+.orb{position:absolute;top:50%;left:50%;border-radius:50%;border:1px solid;transform:translate(-50%,-50%)}
+.o1{width:300px;height:300px;border-color:rgba(74,201,227,.18);animation:spin 22s linear infinite}
+.o2{width:220px;height:220px;border-color:rgba(245,196,0,.14);animation:spin 15s linear infinite reverse}
+.o3{width:140px;height:140px;border-color:rgba(232,76,43,.12);animation:spin 9s linear infinite}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+/* Core */
+.vis-core{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:110px;height:110px;border-radius:50%;z-index:2;
+  background:radial-gradient(circle,rgba(245,196,0,.2),rgba(74,201,227,.08),transparent);
+  border:1px solid rgba(245,196,0,.3);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  animation:corepulse 3s ease-in-out infinite;
+}
+@keyframes corepulse{0%,100%{box-shadow:0 0 20px rgba(245,196,0,.25)}50%{box-shadow:0 0 45px rgba(245,196,0,.55)}}
+.core-tech{font-family:'Orbitron',sans-serif;font-size:.55rem;font-weight:900;letter-spacing:.1em;color:var(--gold)}
+.core-art{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:900;font-style:italic;color:var(--white)}
+.core-lab{font-family:'Orbitron',sans-serif;font-size:.45rem;font-weight:700;letter-spacing:.12em;color:var(--sea)}
+/* Orbit nodes */
+.onode{
+  position:absolute;z-index:3;
+  width:58px;height:58px;
+  border-radius:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-family:'DM Mono',monospace;font-size:.52rem;font-weight:500;
+  letter-spacing:.06em;text-transform:uppercase;
+  transition:filter .3s;
+}
+.onode:hover{filter:brightness(1.5)}
+.on1{background:rgba(232,76,43,.15);border:1px solid rgba(232,76,43,.4);color:var(--red);top:8px;left:50%;transform:translateX(-50%);animation:nodeBob1 3.2s ease-in-out infinite}
+.on2{background:rgba(74,201,227,.1);border:1px solid rgba(74,201,227,.35);color:var(--sea);top:50%;right:8px;transform:translateY(-50%);animation:nodeBob2 4s ease-in-out infinite .5s}
+.on3{background:rgba(245,196,0,.1);border:1px solid rgba(245,196,0,.3);color:var(--gold);bottom:8px;left:50%;transform:translateX(-50%);animation:nodeBob3 3.6s ease-in-out infinite 1s}
+.on4{background:rgba(74,201,227,.08);border:1px solid rgba(74,201,227,.25);color:var(--sea);top:50%;left:8px;transform:translateY(-50%);animation:nodeBob4 4.4s ease-in-out infinite .8s}
+@keyframes nodeBob1{0%,100%{transform:translateX(-50%) translateY(0);filter:brightness(1) drop-shadow(0 0 4px rgba(232,76,43,.3))}50%{transform:translateX(-50%) translateY(-8px);filter:brightness(1.6) drop-shadow(0 0 12px rgba(232,76,43,.8))}}
+@keyframes nodeBob2{0%,100%{transform:translateY(-50%) translateX(0);filter:brightness(1) drop-shadow(0 0 4px rgba(74,201,227,.3))}50%{transform:translateY(-50%) translateX(8px);filter:brightness(1.6) drop-shadow(0 0 12px rgba(74,201,227,.8))}}
+@keyframes nodeBob3{0%,100%{transform:translateX(-50%) translateY(0);filter:brightness(1) drop-shadow(0 0 4px rgba(245,196,0,.3))}50%{transform:translateX(-50%) translateY(8px);filter:brightness(1.6) drop-shadow(0 0 12px rgba(245,196,0,.8))}}
+@keyframes nodeBob4{0%,100%{transform:translateY(-50%) translateX(0);filter:brightness(1) drop-shadow(0 0 4px rgba(74,201,227,.3))}50%{transform:translateY(-50%) translateX(-8px);filter:brightness(1.6) drop-shadow(0 0 12px rgba(74,201,227,.8))}}
+.on-icon{font-size:1.2rem}
+
+/* ── TICKER ── */
+.ticker{
+  position:relative;z-index:1;
+  padding:.6rem 0;overflow:hidden;
+  background:rgba(245,196,0,.05);
+  border-top:1px solid rgba(245,196,0,.12);
+  border-bottom:1px solid rgba(245,196,0,.12);
+}
+.ticker-track{display:flex;gap:3rem;white-space:nowrap;animation:tick 28s linear infinite}
+.ti{
+  font-family:'DM Mono',monospace;font-size:.7rem;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold);flex-shrink:0;
+  display:flex;align-items:center;gap:.7rem;
+}
+.ti::before{content:'◆';font-size:.45rem;color:var(--sea)}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── SECTIONS ── */
+.sec{padding:5rem 3.5rem;position:relative;z-index:1}
+.sec-tag{
+  font-family:'DM Mono',monospace;font-size:.68rem;
+  letter-spacing:.18em;text-transform:uppercase;
+  color:var(--sea);margin-bottom:.8rem;
+  display:flex;align-items:center;gap:.6rem;
+}
+.sec-tag::before{content:'//';color:var(--gold);font-weight:700}
+
+/* Hybrid heading — tech + art font combo */
+.sec-h{margin-bottom:1.2rem;line-height:1}
+.sec-h .tech{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(1.5rem,2.5vw,2.2rem);
+  font-weight:900;color:var(--gold);
+  text-shadow:var(--glow-gold);
+  display:inline;
+}
+.sec-h .art{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.8rem,3vw,2.8rem);
+  font-weight:900;font-style:italic;
+  color:var(--white);display:inline;
+}
+.sec-body{font-size:.95rem;line-height:1.75;color:var(--dim);max-width:580px}
+
+/* ── ABOUT ── */
+.about{background:var(--navy2)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-top:3rem}
+.ab p{font-size:.95rem;line-height:1.8;color:var(--dim);margin-bottom:1rem}
+.ab strong{color:var(--gold)}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem}
+.tag{
+  padding:.3rem .85rem;
+  font-family:'DM Mono',monospace;font-size:.63rem;
+  letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid rgba(74,201,227,.25);color:var(--sea);
+  transition:all .2s;cursor:default;
+}
+.tag:hover{border-color:var(--sea);background:rgba(74,201,227,.08);box-shadow:var(--glow-sea)}
+.acards{display:flex;flex-direction:column;gap:1px}
+.acard{
+  padding:1.4rem 1.8rem;
+  background:rgba(74,201,227,.03);
+  border-left:3px solid transparent;
+  border-bottom:1px solid rgba(74,201,227,.06);
+  transition:all .25s;
+}
+.acard:hover{background:rgba(74,201,227,.07);border-left-color:var(--gold)}
+.ac-h{display:flex;align-items:center;gap:.7rem;margin-bottom:.4rem}
+.ac-icon{font-size:1.1rem}
+.ac-title{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:500;color:var(--gold);transition:all .25s}
+.acard:hover .ac-title{color:var(--sea)}
+.ac-body{font-size:.85rem;line-height:1.65;color:var(--dim)}
+
+/* ── PILLARS ── */
+.pillars{background:var(--navy)}
+.pgrid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:rgba(74,201,227,.07);
+  border:1px solid rgba(74,201,227,.1);margin-top:3rem;
+}
+.pillar{
+  background:var(--navy);padding:2.5rem 2rem;
+  position:relative;overflow:hidden;transition:background .3s;
+}
+.pillar:hover{background:var(--navy2)}
+.pillar::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:2px;background:var(--gold);
+  transform:scaleX(0);transform-origin:left;transition:transform .4s;
+}
+.pillar:hover::after{transform:scaleX(1)}
+.p-num{
+  font-family:'Orbitron',sans-serif;font-size:3.5rem;
+  font-weight:900;color:rgba(245,196,0,.06);
+  position:absolute;top:.8rem;right:1rem;
+  user-select:none;transition:color .3s;
+}
+.pillar:hover .p-num{color:rgba(245,196,0,.12)}
+.p-icon{font-size:2rem;margin-bottom:1.2rem}
+.p-title{font-family:'DM Mono',monospace;font-size:.88rem;font-weight:500;color:var(--sea);margin-bottom:.8rem}
+.p-body{font-size:.87rem;line-height:1.7;color:var(--dim)}
+
+/* ── HOW ── */
+.how{background:var(--navy2)}
+.steps{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:rgba(245,196,0,.07);
+  border:1px solid rgba(245,196,0,.1);margin-top:3rem;
+}
+.step{background:var(--navy2);padding:2.5rem 2rem;transition:background .3s}
+.step:hover{background:rgba(245,196,0,.04)}
+.s-num{
+  font-family:'Orbitron',sans-serif;font-size:2rem;
+  font-weight:900;color:var(--gold);
+  text-shadow:var(--glow-gold);margin-bottom:1rem;line-height:1;
+}
+.s-title{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:500;color:var(--sea);margin-bottom:.6rem}
+.s-body{font-size:.83rem;line-height:1.7;color:var(--dim)}
+
+/* ── RESOURCES ── */
+.resources{background:var(--navy)}
+.r-intro{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:end;margin-bottom:3rem}
+.rgrid{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid rgba(74,201,227,.1)}
+.ri{
+  padding:2rem;display:flex;gap:1.2rem;align-items:flex-start;
+  border-right:1px solid rgba(74,201,227,.07);
+  border-bottom:1px solid rgba(74,201,227,.07);
+  background:var(--navy);transition:background .25s;cursor:default;
+}
+.ri:nth-child(2n){border-right:none}
+.ri:nth-last-child(-n+2){border-bottom:none}
+.ri:hover{background:rgba(74,201,227,.05)}
+.ri:hover .ri-title{color:var(--sea)}
+.ri-ic{
+  width:2.4rem;height:2.4rem;border-radius:4px;
+  background:rgba(245,196,0,.07);border:1px solid rgba(245,196,0,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;transition:all .25s;
+}
+.ri:hover .ri-ic{background:rgba(74,201,227,.1);border-color:rgba(74,201,227,.3)}
+.ri-title{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:500;color:var(--gold);margin-bottom:.35rem;transition:color .25s}
+.ri-body{font-size:.82rem;line-height:1.6;color:var(--dim)}
+
+/* ── STATS ── */
+.stats{
+  background:var(--navy3);
+  border-top:1px solid rgba(245,196,0,.12);
+  border-bottom:1px solid rgba(245,196,0,.12);
+  padding:3.5rem;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:2rem;text-align:center;
+}
+.st-n{font-family:'Orbitron',sans-serif;font-size:2.5rem;font-weight:900;color:var(--gold);text-shadow:var(--glow-gold);line-height:1}
+.st-l{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.06em;color:var(--dim);margin-top:.5rem;line-height:1.4}
+
+/* ── GALLERY ── */
+.gallery{background:var(--navy2)}
+.ggrid{
+  display:grid;grid-template-columns:2fr 1fr 1fr;
+  grid-template-rows:200px 200px;
+  gap:3px;margin-top:2.5rem;
+}
+.gcell{
+  background:rgba(74,201,227,.03);
+  border:1px solid rgba(74,201,227,.08);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:.6rem;
+  position:relative;overflow:hidden;transition:all .3s;
+}
+.gcell:hover{background:rgba(74,201,227,.07);border-color:rgba(74,201,227,.2)}
+.gc1{grid-row:1/3}
+.g-ph{font-size:2.5rem;opacity:.22}
+.g-lb{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.g-badge{
+  position:absolute;top:.7rem;left:.7rem;
+  padding:.18rem .6rem;
+  font-family:'DM Mono',monospace;font-size:.58rem;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:var(--red);color:var(--white);box-shadow:var(--glow-red);
+}
+
+/* ── RESEARCH ── */
+.research{background:var(--navy)}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;margin-top:2.5rem}
+.rb{font-size:.92rem;line-height:1.8;color:var(--dim);margin-bottom:1rem}
+.rb strong{color:var(--gold)}
+/* DBR visual */
+.dbr-wrap{position:relative;width:100%;max-width:340px;aspect-ratio:1;margin:0 auto}
+.dbr-outer{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(74,201,227,.18);animation:spin 25s linear infinite}
+.dbr-inner{position:absolute;inset:15%;border-radius:50%;border:1px solid rgba(245,196,0,.14);animation:spin 18s linear infinite reverse}
+.dbr-ctr{
+  position:absolute;inset:30%;border-radius:50%;
+  background:radial-gradient(circle,rgba(245,196,0,.15),rgba(74,201,227,.05),transparent);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-weight:500;
+  font-size:.58rem;text-align:center;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);
+}
+.dn{
+  position:absolute;width:70px;height:70px;border-radius:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:.55rem;
+  font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.05em;gap:2px;
+}
+.d1{background:rgba(232,76,43,.15);border:1px solid rgba(232,76,43,.4);color:var(--red);top:-18px;left:50%;transform:translateX(-50%)}
+.d2{background:rgba(74,201,227,.1);border:1px solid rgba(74,201,227,.35);color:var(--sea);top:50%;right:-18px;transform:translateY(-50%)}
+.d3{background:rgba(245,196,0,.1);border:1px solid rgba(245,196,0,.3);color:var(--gold);bottom:-18px;left:50%;transform:translateX(-50%)}
+.d4{background:rgba(74,201,227,.07);border:1px solid rgba(74,201,227,.2);color:var(--sea);top:50%;left:-18px;transform:translateY(-50%)}
+.d-icon{font-size:.95rem}
+
+/* ── DCU BLOCK ── */
+.dcu-block{
+  background:var(--navy3);
+  border-top:1px solid rgba(245,196,0,.14);
+  border-bottom:1px solid rgba(245,196,0,.14);
+  padding:4rem 3.5rem;
+  display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;
+}
+.dcu-block h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.3rem,2vw,1.8rem);font-weight:900;color:var(--gold);text-shadow:var(--glow-gold);margin-bottom:1rem;line-height:1.1}
+.dcu-block h2 span{font-family:'Playfair Display',serif;font-style:italic;color:var(--sea)}
+.dcu-block p{font-size:.9rem;line-height:1.75;color:var(--dim);margin-bottom:.9rem}
+.dcu-block a{font-family:'DM Mono',monospace;font-size:.73rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sea);transition:color .2s}
+.dcu-block a:hover{color:var(--gold)}
+.dcu-facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(74,201,227,.08);border:1px solid rgba(74,201,227,.1)}
+.df{background:var(--navy3);padding:1.8rem 1.5rem;transition:background .25s}
+.df:hover{background:rgba(245,196,0,.04)}
+.df-n{font-family:'Orbitron',sans-serif;font-size:1.7rem;font-weight:900;color:var(--gold);text-shadow:var(--glow-gold);line-height:1;margin-bottom:.4rem}
+.df-l{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--dim);line-height:1.4;letter-spacing:.04em}
+
+/* ── FOOTER ── */
+footer{
+  background:rgba(6,16,29,.99);
+  border-top:1px solid rgba(74,201,227,.1);
+  padding:4rem 3.5rem;
+  display:grid;grid-template-columns:2fr 1fr 1fr;
+  gap:4rem;position:relative;z-index:1;
+}
+.f-logo{display:flex;align-items:baseline;gap:.3rem;margin-bottom:.9rem}
+.f-logo-tech{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;letter-spacing:.08em;color:var(--gold);text-shadow:var(--glow-gold)}
+.f-logo-art{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;font-style:italic;color:var(--sea)}
+.f-desc{font-size:.85rem;line-height:1.7;color:var(--dim);max-width:320px}
+.f-ct{font-family:'DM Mono',monospace;font-size:.68rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:1.2rem}
+.f-links{list-style:none}
+.f-links li{margin-bottom:.6rem}
+.f-links a{font-size:.85rem;color:var(--dim);transition:color .2s}
+.f-links a:hover{color:var(--sea)}
+.f-bot{
+  background:rgba(6,16,29,.99);
+  padding:1.2rem 3.5rem;
+  border-top:1px solid rgba(74,201,227,.07);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:.5rem;z-index:1;position:relative;
+}
+.f-bot p{font-family:'DM Mono',monospace;font-size:.66rem;letter-spacing:.05em;color:rgba(138,180,196,.35)}
+.f-bot strong{color:var(--gold)}
+.f-bot a{color:var(--sea);transition:color .2s}
+.f-bot a:hover{color:var(--gold)}
+
+/* ── MOBILE ── */
+@media(max-width:900px){
+  .dcu-bar,nav,.f-bot{padding-left:1.5rem;padding-right:1.5rem}
+  .sec,.stats,.dcu-block,footer{padding-left:1.5rem;padding-right:1.5rem}
+  .hero{grid-template-columns:1fr;padding:5rem 1.5rem 3rem}
+  .hero-visual{display:none}
+  .about-grid,.rg,.r-intro,.dcu-block{grid-template-columns:1fr;gap:2rem}
+  .pgrid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .rgrid,.dcu-facts{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .ggrid{grid-template-columns:1fr 1fr;grid-template-rows:auto}
+  .gc1{grid-row:auto}
+  footer{grid-template-columns:1fr;gap:2rem}
+  .nav-dot{display:none}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<!-- DCU BAR -->
+<div class="dcu-bar">
+  <div class="dcu-l">
+    <span class="dcu-name">Dublin City University</span>
+    <div class="dcu-div"></div>
+    <span class="dcu-sub">Funded PhD Research · Institute of Education</span>
+  </div>
+  <a href="https://www.dcu.ie" target="_blank" class="dcu-a">dcu.ie →</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <span class="nav-logo-tech">Digital</span>
+    <span class="nav-logo-art">Art Lab</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#approach">Approach</a></li>
+    <li><a href="#resources">Resources</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-dot"><div class="pulse"></div>Live Platform</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <p class="hero-tag">Irish Primary Visual Arts · PhD Research · DCU</p>
+    <div class="hero-h1">
+      <span class="h1-digital">Digital</span>
+      <span class="h1-art">Art</span>
+      <span class="h1-lab">Lab_</span>
+    </div>
+    <p class="hero-desc">Where traditional art-making meets digital technology. A creative platform for Irish primary teachers — to experiment, take chances, and discover what digital art can look like in your classroom.</p>
+    <div class="hero-cta">
+      <a href="#resources" class="btn btn-gold">Explore Resources →</a>
+      <a href="#about" class="btn btn-ghost">About the DAL</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="vis-wrap">
+      <!-- Paint splash behind rings -->
+      <svg class="splash-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg">
+        <ellipse class="sp1" cx="300" cy="140" rx="160" ry="90" fill="#f5c400" transform="rotate(-22,300,140)"/>
+        <ellipse class="sp2" cx="150" cy="320" rx="120" ry="65" fill="#4ac9e3" transform="rotate(15,150,320)"/>
+        <ellipse class="sp3" cx="340" cy="330" rx="90" ry="55" fill="#e84c2b" transform="rotate(-8,340,330)"/>
+        <circle class="sp4" cx="100" cy="130" r="60" fill="#f5c400"/>
+        <path class="sp5" d="M60,240 Q110,200 160,255 Q210,310 250,265" stroke="#4ac9e3" stroke-width="18" fill="none" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="0"/>
+        <circle class="sp6" cx="380" cy="200" r="35" fill="#e84c2b"/>
+      </svg>
+      <!-- Orbital rings -->
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+      <!-- Core -->
+      <div class="vis-core">
+        <span class="core-tech">DIGITAL</span>
+        <span class="core-art">Art</span>
+        <span class="core-lab">LAB</span>
+      </div>
+      <!-- Nodes -->
+      <div class="onode on1"><span class="on-icon">🎨</span>Create</div>
+      <div class="onode on2"><span class="on-icon">💻</span>Digital</div>
+      <div class="onode on3"><span class="on-icon">✨</span>Explore</div>
+      <div class="onode on4"><span class="on-icon">🔬</span>Research</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span class="ti">Digital Art Making</span><span class="ti">Traditional + Digital</span><span class="ti">Irish Primary Curriculum</span><span class="ti">Teacher Empowerment</span><span class="ti">Creative Technology</span><span class="ti">Hybrid Practice</span><span class="ti">Design-Based Research</span><span class="ti">DCU Institute of Education</span><span class="ti">Visual Arts</span>
+    <span class="ti">Digital Art Making</span><span class="ti">Traditional + Digital</span><span class="ti">Irish Primary Curriculum</span><span class="ti">Teacher Empowerment</span><span class="ti">Creative Technology</span><span class="ti">Hybrid Practice</span><span class="ti">Design-Based Research</span><span class="ti">DCU Institute of Education</span><span class="ti">Visual Arts</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="sec about" id="about">
+  <p class="sec-tag">What is the DAL?</p>
+  <div class="about-grid">
+    <div class="ab">
+      <h2 class="sec-h"><span class="tech">A Lab</span> <span class="art">for Creative Bravery</span></h2>
+      <p>The Digital Art Lab is a <strong>resource and inspiration platform</strong> for Irish primary teachers — where traditional art-making and digital technology come together. Whether you're starting with a paintbrush or an iPad, the DAL supports you to experiment and discover.</p>
+      <p>Digital technology is always at the centre. Sometimes you'll start with paint or clay and bring ideas into a digital tool. Sometimes it's purely digital. What matters is the <strong>spirit of experimentation</strong> — the willingness to try something, see what happens, and try again.</p>
+      <p>Everything here comes from real workshops with trainee and qualified teachers — experimenting together, taking chances, and discovering what genuinely works in a primary classroom.</p>
+      <div class="tags">
+        <span class="tag">Be Brave</span>
+        <span class="tag">Experiment</span>
+        <span class="tag">Try &amp; Try Again</span>
+        <span class="tag">No Wrong Answers</span>
+        <span class="tag">Process Over Product</span>
+        <span class="tag">Follow Your Curiosity</span>
+      </div>
+    </div>
+    <div class="acards">
+      <div class="acard"><div class="ac-h"><span class="ac-icon">💻</span><h4 class="ac-title">Digital First</h4></div><p class="ac-body">Apps, drawing tools, animation, photography, video — digital technology is always at the heart of the DAL. Every resource embeds a digital element.</p></div>
+      <div class="acard"><div class="ac-h"><span class="ac-icon">🖌️</span><h4 class="ac-title">Starting Physical, Going Digital</h4></div><p class="ac-body">Sometimes the best starting point is a brush, print, or collage — but the journey always leads into digital territory. Physical materials spark the idea; technology carries it further.</p></div>
+      <div class="acard"><div class="ac-h"><span class="ac-icon">🔀</span><h4 class="ac-title">Hybrid Practice</h4></div><p class="ac-body">Traditional and digital processes woven together — responding to each other, creating something richer than either could produce alone.</p></div>
+      <div class="acard"><div class="ac-h"><span class="ac-icon">🎯</span><h4 class="ac-title">Always Curriculum-Linked</h4></div><p class="ac-body">All DAL resources connect to the Irish Primary Curriculum — Visual Arts strands, competencies, and class levels clearly signposted.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section class="sec pillars" id="approach">
+  <p class="sec-tag">Our Principles</p>
+  <h2 class="sec-h"><span class="tech">What the DAL</span> <span class="art">Stands For</span></h2>
+  <p class="sec-body">Three beliefs shape everything we make and share on this platform.</p>
+  <div class="pgrid">
+    <div class="pillar"><span class="p-num">01</span><div class="p-icon">🧪</div><h3 class="p-title">Experimentation Over Perfection</h3><p class="p-body">The best learning happens when teachers feel free to try things without fear of failure. The process of experimenting is itself the point — not arriving at a polished final product.</p></div>
+    <div class="pillar"><span class="p-num">02</span><div class="p-icon">🎓</div><h3 class="p-title">Teacher Empowerment</h3><p class="p-body">Digital empowerment isn't just about knowing how to use a tool. It's about having the confidence, curiosity, and creative purpose to make your own decisions about technology in your teaching.</p></div>
+    <div class="pillar"><span class="p-num">03</span><div class="p-icon">📚</div><h3 class="p-title">Grounded in the Curriculum</h3><p class="p-body">Everything in the DAL connects to the new Irish Primary Curriculum — particularly its emphasis on creativity, agency, inclusion, and contemporary competencies in Visual Arts.</p></div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="sec how">
+  <p class="sec-tag">How the DAL Works</p>
+  <h2 class="sec-h"><span class="tech">From Workshop</span> <span class="art">to Your Classroom</span></h2>
+  <p class="sec-body">Everything on this platform starts in a real workshop and ends in your hands.</p>
+  <div class="steps">
+    <div class="step"><div class="s-num">01</div><h4 class="s-title">We Experiment Together</h4><p class="s-body">Trainee and qualified teachers come into the DAL — a real creative studio — to try things out with both traditional art materials and digital approaches.</p></div>
+    <div class="step"><div class="s-num">02</div><h4 class="s-title">We Document Everything</h4><p class="s-body">Photos, videos, teacher reflections — every step captured. Not just the finished work but the thinking, the stumbles, and the unexpected discoveries.</p></div>
+    <div class="step"><div class="s-num">03</div><h4 class="s-title">We Turn It Into Resources</h4><p class="s-body">Workshop experiments shaped into classroom-ready materials — lesson ideas, tool guides, exemplars, and curriculum links — free to use and adapt.</p></div>
+    <div class="step"><div class="s-num">04</div><h4 class="s-title">You Take It Further</h4><p class="s-body">You bring resources into your classroom, adapt them for your children, and share what you discover. Your feedback shapes what the DAL develops next.</p></div>
+  </div>
+</section>
+
+<!-- RESOURCES -->
+<section class="sec resources" id="resources">
+  <div class="r-intro">
+    <div>
+      <p class="sec-tag">What You'll Find Here</p>
+      <h2 class="sec-h"><span class="tech">Explore</span> <span class="art">the Platform</span></h2>
+    </div>
+    <p class="sec-body">Eight sections — designed to support teachers from first curiosity to confident classroom practice.</p>
+  </div>
+  <div class="rgrid">
+    <a href="talking-avatar.html" class="ri"><div class="ri-ic">💡</div><div><h4 class="ri-title">Lesson Ideas →</h4><p class="ri-body">Starting points for digital art lessons — adaptable for any primary class level.</p></div></a>
+    <div class="ri"><div class="ri-ic">🛠️</div><div><h4 class="ri-title">Tool Tutorials</h4><p class="ri-body">Short, accessible guides to digital tools — no specialist knowledge required.</p></div></div>
+    <div class="ri"><div class="ri-ic">🖼️</div><div><h4 class="ri-title">Workshop Exemplars</h4><p class="ri-body">Real examples from DAL workshops — showing process and outcomes at every stage.</p></div></div>
+    <div class="ri"><div class="ri-ic">📋</div><div><h4 class="ri-title">Curriculum Connections</h4><p class="ri-body">Every resource mapped to the Irish Primary Curriculum — strands and class levels.</p></div></div>
+    <div class="ri"><div class="ri-ic">🎓</div><div><h4 class="ri-title">Teacher CPD</h4><p class="ri-body">Professional learning material — building confidence and implementation support.</p></div></div>
+    <div class="ri"><div class="ri-ic">🎬</div><div><h4 class="ri-title">Process Videos</h4><p class="ri-body">Behind-the-scenes footage from the workshop — creativity unfolding in real time.</p></div></div>
+    <div class="ri"><div class="ri-ic">📦</div><div><h4 class="ri-title">Download Packs</h4><p class="ri-body">PDF resources, planning templates, and printable guides for your classroom.</p></div></div>
+    <div class="ri" id="contact"><div class="ri-ic">🗣️</div><div><h4 class="ri-title">Teacher Voices</h4><p class="ri-body">Honest reflections — what worked, what surprised them, what they'd do differently.</p></div></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div><div class="st-n">3</div><div class="st-l">Approaches —<br>Digital, Physical &amp; Hybrid</div></div>
+  <div><div class="st-n">DBR</div><div class="st-l">Design-Based<br>Research Methodology</div></div>
+  <div><div class="st-n">IPC</div><div class="st-l">Aligned with the Irish<br>Primary Curriculum</div></div>
+  <div><div class="st-n">∞</div><div class="st-l">Ways to Experiment<br>&amp; Be Creative</div></div>
+</div>
+
+<!-- GALLERY -->
+<section class="sec gallery">
+  <p class="sec-tag">From the Workshop</p>
+  <h2 class="sec-h"><span class="tech">Experiments</span> <span class="art">in Progress</span></h2>
+  <p class="sec-body">Workshop photos, process videos, and exemplars will appear here as the project develops.</p>
+  <div class="ggrid">
+    <div class="gcell gc1"><span class="g-badge">Coming Soon</span><span class="g-ph">🎨</span><span class="g-lb">Workshop Photography</span></div>
+    <div class="gcell"><span class="g-ph">🎬</span><span class="g-lb">Process Video</span></div>
+    <div class="gcell"><span class="g-ph">🖼️</span><span class="g-lb">Exemplar Work</span></div>
+    <div class="gcell"><span class="g-ph">📱</span><span class="g-lb">Digital Output</span></div>
+    <div class="gcell"><span class="g-ph">✏️</span><span class="g-lb">Making Process</span></div>
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section class="sec research" id="research">
+  <p class="sec-tag">The Research Behind the DAL</p>
+  <div class="rg">
+    <div>
+      <h2 class="sec-h"><span class="tech">Grounded in</span> <span class="art">Design-Based Research</span></h2>
+      <p class="rb">The DAL is the central practical output of a PhD study at DCU: <em>Fostering Digital Empowerment — An Online Multi-Media Art Resource for Irish Primary School Teachers.</em></p>
+      <p class="rb">The platform is built iteratively — through <strong>real cycles of design, workshop implementation, reflection, and refinement</strong>. It is both a research intervention and a practical tool for teachers.</p>
+      <p class="rb">The research sits within the new Irish Primary Curriculum — particularly its emphasis on creativity, agency, inclusion, and contemporary competencies in Visual Arts education.</p>
+      <a href="mailto:" class="btn btn-gold" style="margin-top:1rem">Get in Touch →</a>
+    </div>
+    <div>
+      <div class="dbr-wrap">
+        <div class="dbr-outer"></div>
+        <div class="dbr-inner"></div>
+        <div class="dbr-ctr">Design-Based<br>Research<br>Cycle</div>
+        <div class="dn d1"><span class="d-icon">✏️</span>Design</div>
+        <div class="dn d2"><span class="d-icon">🚀</span>Implement</div>
+        <div class="dn d3"><span class="d-icon">🔍</span>Reflect</div>
+        <div class="dn d4"><span class="d-icon">🔄</span>Refine</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DCU BLOCK -->
+<div class="dcu-block">
+  <div>
+    <h2>PhD Research at <span>Dublin City University</span></h2>
+    <p>The Digital Art Lab is the central output of a funded PhD study at DCU's Institute of Education — one of Ireland's leading centres for educational research and teacher education.</p>
+    <p>The research reflects DCU's commitment to purposeful, innovative, and socially engaged scholarship in teaching and learning.</p>
+    <a href="https://www.dcu.ie" target="_blank">Visit dcu.ie →</a>
+  </div>
+  <div class="dcu-facts">
+    <div class="df"><div class="df-n">DCU</div><div class="df-l">Dublin City University — Purposefully Different, Consistently Excellent</div></div>
+    <div class="df"><div class="df-n">IoE</div><div class="df-l">Institute of Education — Ireland's largest provider of teacher education</div></div>
+    <div class="df"><div class="df-n">DBR</div><div class="df-l">Design-Based Research — theory and practice in dialogue</div></div>
+    <div class="df"><div class="df-n">IPC</div><div class="df-l">Aligned with the new Irish Primary Curriculum — Visual Arts</div></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="f-logo">
+      <span class="f-logo-tech">Digital</span>
+      <span class="f-logo-art">Art Lab</span>
+    </div>
+    <p class="f-desc">A creative tech resource platform for Irish primary teachers — where traditional art-making meets digital technology, grounded in the Irish Primary Curriculum.</p>
+  </div>
+  <div>
+    <p class="f-ct">Platform</p>
+    <ul class="f-links">
+      <li><a href="talking-avatar.html">Lesson Ideas</a></li>
+      <li><a href="#">Tool Tutorials</a></li>
+      <li><a href="#">Workshop Exemplars</a></li>
+      <li><a href="#">Curriculum Connections</a></li>
+      <li><a href="#">Teacher CPD</a></li>
+      <li><a href="#">Download Packs</a></li>
+    </ul>
+  </div>
+  <div>
+    <p class="f-ct">Project</p>
+    <ul class="f-links">
+      <li><a href="#">About the DAL</a></li>
+      <li><a href="#">Research Background</a></li>
+      <li><a href="#">Teacher Voices</a></li>
+      <li><a href="#">Process Videos</a></li>
+      <li><a href="#">Give Feedback</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </div>
+</footer>
+<div class="f-bot">
+  <p>Digital Art Lab — <strong>PhD Research Platform</strong> · <a href="https://www.dcu.ie" target="_blank">Dublin City University</a></p>
+  <p>Fostering Digital Empowerment in Irish Primary Visual Arts Education</p>
+</div>
+
+<script>
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let W, H, pts = [];
+const C = ['rgba(245,196,0,','rgba(74,201,227,','rgba(232,76,43,'];
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function Pt(){
+  this.x = Math.random()*W;
+  this.y = Math.random()*H;
+  this.vx = (Math.random()-.5)*.35;
+  this.vy = (Math.random()-.5)*.35;
+  this.r = Math.random()*1.8+.4;
+  this.c = C[Math.floor(Math.random()*C.length)];
+  this.a = Math.random()*.5+.15;
+}
+
+function init(){
+  resize();
+  pts = [];
+  for(let i=0;i<85;i++) pts.push(new Pt());
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  pts.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0||p.x>W) p.vx*=-1;
+    if(p.y<0||p.y>H) p.vy*=-1;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=p.c+p.a+')';
+    ctx.fill();
+  });
+  for(let i=0;i<pts.length;i++){
+    for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<130){
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x,pts[i].y);
+        ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.strokeStyle='rgba(74,201,227,'+(1-d/130)*.12+')';
+        ctx.lineWidth=.4;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize',init);
+init(); draw();
+</script>
+</body>
+</html>
